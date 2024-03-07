@@ -169,8 +169,6 @@ class ZbrushHost(HostBase, IWorkfileHost, ILoadHost, IPublishHost):
     def initial_app_launch(self):
         #TODO: figure out how to deal with the last workfile issue
         set_current_file()
-        context = get_global_context()
-        save_current_workfile_context(context)
 
     def application_exit(self):
         """Logic related to TimerManager.
