@@ -152,8 +152,6 @@ def export_tool(filepath: str):
     # write the file in chunks, as such the file might exist before the writing
     # to it has finished
     execute_zscript_and_wait(export_tool_zscript, filepath)
-    if not os.path.exists(filepath):
-        raise RuntimeError(f"Export file was not created: {filepath}")
 
 
 def is_in_edit_mode():
