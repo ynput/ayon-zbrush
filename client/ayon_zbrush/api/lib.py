@@ -151,7 +151,8 @@ def export_tool(filepath: str):
     # We do not check for the export file's existence because Zbrush might
     # write the file in chunks, as such the file might exist before the writing
     # to it has finished
-    execute_zscript_and_wait(export_tool_zscript, filepath)
+    execute_zscript_and_wait(
+        export_tool_zscript, check_filepath=filepath)
 
 
 def is_in_edit_mode():
