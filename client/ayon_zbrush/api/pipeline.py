@@ -53,7 +53,6 @@ class ZbrushHost(HostBase, IWorkfileHost, ILoadHost, IPublishHost):
         register_event_callback("application.launched", self.initial_app_launch)
         register_event_callback("application.exit", self.application_exit)
 
-
     def get_current_project_name(self):
         """
         Returns:
@@ -65,7 +64,7 @@ class ZbrushHost(HostBase, IWorkfileHost, ILoadHost, IPublishHost):
     def get_current_folder_path(self):
         """
         Returns:
-            Union[str, None]: Current asset name.
+            Union[str, None]: Current folder path.
         """
 
         return self.get_current_context().get("folder_path")
@@ -90,19 +89,16 @@ class ZbrushHost(HostBase, IWorkfileHost, ILoadHost, IPublishHost):
             "folder_path": context.get("folder_path"),
             "task_name": context.get("task")
         }
+
     # --- Workfile ---
     def open_workfile(self, filepath):
-        open_file_zscript = ("""
+        filepath = filepath.replace("\\", "/")
+        execute_zscript(f"""
 [IFreeze,
-[MemCreate, currentfile, 1000, 0]
-[VarSet, filename, "{filepath}"]
-[MemWriteString, currentfile, #filename, 0]
-[FileNameSetNext, #filename]
-[IKeyPress, 13, [IPress, File:Open:Open]]]
-[MemDelete, currentfile]
+    [FileNameSetNext, "{filepath}"]
+    [IKeyPress, 13, [IPress, File:Open:Open]]]
 ]
-    """).format(filepath=filepath)
-        execute_zscript(open_file_zscript)
+    """)
         set_current_file(filepath=filepath)
         return filepath
 
@@ -110,31 +106,23 @@ class ZbrushHost(HostBase, IWorkfileHost, ILoadHost, IPublishHost):
         if not filepath:
             filepath = self.get_current_workfile()
         filepath = filepath.replace("\\", "/")
-        save_file_zscript = ("""
-[IFreeze,
-[MemCreate, currentfile, 1000, 0]
-[VarSet, filename, "{filepath}"]
-[MemWriteString, currentfile, #filename, 0]
-[FileNameSetNext, #filename]
-[IKeyPress, 13, [IPress, File:SaveAs:SaveAs]]]
-[MemDelete, currentfile]
-]
-""").format(filepath=filepath)
         # # move the json data to the files
         # # shutil.copy
         copy_ayon_data(filepath)
         set_current_file(filepath=filepath)
-        execute_zscript(save_file_zscript)
+        execute_zscript(f"""
+[IFreeze,
+    [FileNameSetNext, "{filepath}"]
+    [IKeyPress, 13, [IPress, File:SaveAs:SaveAs]]]
+]
+""")
         return filepath
 
     def work_root(self, session):
         return session["AYON_WORKDIR"]
 
     def get_current_workfile(self):
-        project_name = get_current_context()["project_name"]
-        folder_path = get_current_context()["folder_path"]
-        task_name = get_current_context()["task_name"]
-        work_dir = get_workdir(project_name, folder_path, task_name)
+        work_dir = get_workdir()
         txt_dir = os.path.join(
             work_dir, ".zbrush_metadata").replace(
                 "\\", "/"
@@ -148,7 +136,7 @@ class ZbrushHost(HostBase, IWorkfileHost, ILoadHost, IPublishHost):
     def workfile_has_unsaved_changes(self):
         # Pop-up dialog would be located to ask if users
         # save scene if it has unsaved changes
-        return False
+        return True
 
     def get_workfile_extensions(self):
         return [".zpr"]
@@ -156,15 +144,25 @@ class ZbrushHost(HostBase, IWorkfileHost, ILoadHost, IPublishHost):
     def list_instances(self):
         """Get all AYON instances."""
         # Figure out how to deal with this
-        return get_instance_workfile_metadata(ZBRUSH_SECTION_NAME_INSTANCES)
+        return get_instance_workfile_metadata()
 
     def write_instances(self, data):
+        """Write all AYON instances"""
         return write_workfile_metadata(ZBRUSH_SECTION_NAME_INSTANCES, data)
 
     def get_containers(self):
+        """Get the data of the containers
+
+        Returns:
+            list: the list which stores the data of the containers
+        """
         return get_containers()
 
     def initial_app_launch(self):
+        """Triggers on launch of the communication server for Zbrush.
+
+        Usually this aligns roughly with the start of Zbrush.
+        """
         #TODO: figure out how to deal with the last workfile issue
         set_current_file()
         context = get_global_context()
@@ -194,6 +192,7 @@ class ZbrushHost(HostBase, IWorkfileHost, ILoadHost, IPublishHost):
     def get_context_data(self):
         get_load_workfile_metadata(ZBRUSH_METADATA_CREATE_CONTEXT)
 
+
 def containerise(
         name, context, namespace="", loader=None, containers=None):
     data = {
@@ -209,19 +208,40 @@ def containerise(
 
     containers.append(data)
 
-    write_load_metadata(ZBRUSH_SECTION_NAME_CONTAINERS, containers)
+    write_load_metadata(containers)
     return data
 
 
 def save_current_workfile_context(context):
+    """Save current workfile context data to `.zbrush_metadata/{workfile}/key`
+
+    This persists the current in-memory context to be set for a specific
+    workfile on disk. Usually used on save to persist the local sessions'
+    workfile context on save.
+
+    The context data includes things like the project name, folder path,
+    etc.
+
+    Args:
+        context (dict): context data
+
+    """
     return write_context_metadata(ZBRUSH_SECTION_NAME_CONTEXT, context)
 
 
 def write_context_metadata(metadata_key, context):
-    project_name = get_current_context()["project_name"]
-    folder_path = get_current_context()["folder_path"]
-    task_name = get_current_context()["task_name"]
-    work_dir = get_workdir(project_name, folder_path, task_name)
+    """Write context data into the related json
+    which stores in .zbrush_metadata/key folder
+    in the project work directory.
+
+    The context data includes the project name, folder path
+    and task name.
+
+    Args:
+        metadata_key (str): metadata key
+        context (dict): context data
+    """
+    work_dir = get_workdir()
     json_dir = os.path.join(
         work_dir, ".zbrush_metadata", metadata_key).replace(
             "\\", "/"
@@ -240,16 +260,23 @@ def write_context_metadata(metadata_key, context):
 
 
 def write_workfile_metadata(metadata_key, data=None):
+    """Function to write workfile metadata(such as creator's context data
+    and instance data) in .zbrushmetadata/{workfile}/{metadata_key} folder
+    This persists the current in-memory instance/creator's context data
+    to be set for a specific workfile on disk. Usually used on save to
+    persist updating instance data and context data used in publisher.
+
+    Args:
+        metadata_key (str): metadata key
+        data (list, optional): metadata. Defaults to None.
+    """
     if data is None:
         data = []
-    project_name = get_current_context()["project_name"]
-    folder_path = get_current_context()["folder_path"]
-    task_name = get_current_context()["task_name"]
     current_file = registered_host().get_current_workfile()
     if current_file:
         current_file = os.path.splitext(
             os.path.basename(current_file))[0].strip()
-    work_dir = get_workdir(project_name, folder_path, task_name)
+    work_dir = get_workdir()
     json_dir = os.path.join(
         work_dir, ".zbrush_metadata",
         current_file, metadata_key).replace(
@@ -263,43 +290,24 @@ def write_workfile_metadata(metadata_key, data=None):
 
 
 def get_current_workfile_context():
-    return get_load_context_metadata(ZBRUSH_SECTION_NAME_CONTEXT)
+    """Function to get the current context data from the related
+    json file in .zbrush_metadata/context folder
 
+    The current context data includes thing like project name,
+    folder path and task name.
 
-def get_current_context():
-    return {
-        "project_name": os.environ.get("AYON_PROJECT_NAME"),
-        "folder_path": os.environ.get("AYON_FOLDER_PATH"),
-        "task_name": os.environ.get("AYON_TASK_NAME")
-    }
-
-
-def get_workfile_metadata(metadata_key, default=None):
-    if default is None:
-        default = []
-    output_file = tempfile.NamedTemporaryFile(
-        mode="w", prefix="a_zb_meta", suffix=".txt", delete=False
-    )
-    output_file.close()
-    output_filepath = output_file.name.replace("\\", "/")
-    context_data_zscript = ("""
-[IFreeze,
-[If, [MemCreate, {metadata_key}, 400000, 0] !=-1,
-[MemCreate, {metadata_key}, 400000, 0]
-[MemWriteString, {metadata_key}, "{default}", 0]]
-[MemSaveToFile, {metadata_key}, "{output_filepath}", 1]
-[MemDelete, {metadata_key}]
-]
-""").format(metadata_key=metadata_key,
-            default=default, output_filepath=output_filepath)
-    execute_zscript(context_data_zscript)
-    with open(output_filepath) as data:
-        file_content = str(data.read().strip()).rstrip('\x00')
-        file_content = ast.literal_eval(file_content)
-    return file_content
+    Returns:
+        list: list of context data
+    """
+    return get_load_context_metadata()
 
 
 def get_containers():
+    """Function to get the container data
+
+    Returns:
+        list: list of container data
+    """
     output = get_load_workfile_metadata(ZBRUSH_SECTION_NAME_CONTAINERS)
     if output:
         for item in output:
@@ -311,20 +319,26 @@ def get_containers():
 
     return output
 
-def write_load_metadata(metadata_key, data):
-    #TODO: create temp json file
-    project_name = get_current_context()["project_name"]
-    folder_path = get_current_context()["folder_path"]
-    task_name = get_current_context()["task_name"]
+
+def write_load_metadata(data):
+    """Write/Edit the container data into the related json file("{subset_name}.json")
+    which stores in .zbrush_metadata/{workfile}/containers folder.
+    This persists the current in-memory containers data
+    to be set for updating and switching assets in scene inventory.
+
+    Args:
+        metadata_key (str): metadata key for container
+        data (list): list of container data
+    """
     current_file = registered_host().get_current_workfile()
     if current_file:
         current_file = os.path.splitext(
             os.path.basename(current_file))[0].strip()
-    work_dir = get_workdir(project_name, folder_path, task_name)
+    work_dir = get_workdir()
     name = next((d["name"] for d in data), None)
     json_dir = os.path.join(
         work_dir, ".zbrush_metadata",
-        current_file, metadata_key).replace(
+        current_file, ZBRUSH_SECTION_NAME_CONTAINERS).replace(
             "\\", "/"
         )
     os.makedirs(json_dir, exist_ok=True)
@@ -337,14 +351,21 @@ def write_load_metadata(metadata_key, data):
         file.close()
 
 
-def get_load_context_metadata(metadata_key):
+def get_load_context_metadata():
+    """Get the context data from the related json file
+    ("context.json") which stores in .zbrush_metadata/context
+    folder in the project work directory.
+
+    The context data includes the project name, folder path and
+    task name.
+
+    Returns:
+        list: context data
+    """
     file_content = []
-    project_name = get_current_context()["project_name"]
-    folder_path = get_current_context()["folder_path"]
-    task_name = get_current_context()["task_name"]
-    work_dir = get_workdir(project_name, folder_path, task_name)
+    work_dir = get_workdir()
     json_dir = os.path.join(
-        work_dir, ".zbrush_metadata", metadata_key).replace(
+        work_dir, ".zbrush_metadata", ZBRUSH_SECTION_NAME_CONTEXT).replace(
             "\\", "/"
         )
     if not os.path.exists(json_dir):
@@ -360,17 +381,29 @@ def get_load_context_metadata(metadata_key):
 
 
 def get_load_workfile_metadata(metadata_key):
-    # save zscript to the hidden folder
-    # load json files
+    """Get to load the workfile json metadata(such as
+    creator's context data and container data) which stores in
+    zbrush_metadata/{workfile}/{metadata_key} folder in the project
+    work directory.
+    It mainly supports to the metadata_key below:
+    ZBRUSH_METADATA_CREATE_CONTEXT: loading create_context.json where
+        stores the data with publish_attributes(e.g. whether the
+        optional validator is enabled.)
+    ZBRUSH_SECTION_NAME_CONTAINERS: loading {subset_name}.json where
+        includes all the loaded asset data to the zbrush scene.
+
+    Args:
+        metadata_key (str): name of the metadata key
+
+    Returns:
+        list: list of metadata(create-context data or container data)
+    """
     file_content = []
-    project_name = get_current_context()["project_name"]
-    folder_path = get_current_context()["folder_path"]
-    task_name = get_current_context()["task_name"]
     current_file = registered_host().get_current_workfile()
     if current_file:
         current_file = os.path.splitext(
             os.path.basename(current_file))[0].strip()
-    work_dir = get_workdir(project_name, folder_path, task_name)
+    work_dir = get_workdir()
     json_dir = os.path.join(
         work_dir, ".zbrush_metadata",
         current_file, metadata_key).replace(
@@ -389,21 +422,26 @@ def get_load_workfile_metadata(metadata_key):
     return file_content
 
 
-def get_instance_workfile_metadata(metadata_key):
-    # save zscript to the hidden folder
-    # load json files
+def get_instance_workfile_metadata():
+    """Get instance data from the related metadata json("instances.json")
+    which stores in .zbrush_metadata/{workfile}/instances folder
+    in the project work directory.
+
+    Instance data includes the info like the workfile instance
+    and any instances created by the users for publishing.
+
+    Returns:
+        dict: instance data
+    """
     file_content = []
-    project_name = get_current_context()["project_name"]
-    folder_path = get_current_context()["folder_path"]
-    task_name = get_current_context()["task_name"]
     current_file = registered_host().get_current_workfile()
     if current_file:
         current_file = os.path.splitext(
             os.path.basename(current_file))[0].strip()
-    work_dir = get_workdir(project_name, folder_path, task_name)
+    work_dir = get_workdir()
     json_dir = os.path.join(
         work_dir, ".zbrush_metadata",
-        current_file, metadata_key).replace(
+        current_file, ZBRUSH_SECTION_NAME_INSTANCES).replace(
             "\\", "/"
         )
     if not os.path.exists(json_dir) or not os.listdir(json_dir):
@@ -416,14 +454,17 @@ def get_instance_workfile_metadata(metadata_key):
 
 
 def remove_container_data(name):
-    project_name = get_current_context()["project_name"]
-    folder_path = get_current_context()["folder_path"]
-    task_name = get_current_context()["task_name"]
+    """Function to remove the specific container data from
+    {subset_name}.json in .zbrush_metadata/{workfile}/containers folder
+
+    Args:
+        name (str): object name stored in the container
+    """
     current_file = registered_host().get_current_workfile()
     if current_file:
         current_file = os.path.splitext(
             os.path.basename(current_file))[0].strip()
-    work_dir = get_workdir(project_name, folder_path, task_name)
+    work_dir = get_workdir()
     json_dir = os.path.join(
         work_dir, ".zbrush_metadata",
         current_file, ZBRUSH_SECTION_NAME_CONTAINERS).replace(
@@ -437,10 +478,12 @@ def remove_container_data(name):
 
 
 def remove_tmp_data():
-    project_name = get_current_context()["project_name"]
-    folder_path = get_current_context()["folder_path"]
-    task_name = get_current_context()["task_name"]
-    work_dir = get_workdir(project_name, folder_path, task_name)
+    """Remove all temporary data which is created by AYON without
+    saving changes when launching Zbrush without enabling `skip
+    opening last workfile`
+
+    """
+    work_dir = get_workdir()
     for name in [ZBRUSH_METADATA_CREATE_CONTEXT,
                  ZBRUSH_SECTION_NAME_INSTANCES,
                  ZBRUSH_SECTION_NAME_CONTAINERS]:
@@ -457,15 +500,20 @@ def remove_tmp_data():
 
 
 def copy_ayon_data(filepath):
+    """Copy any ayon-related data(
+        such as instances, create-context, cotnainers)
+        from the previous workfile to the new one
+        when incrementing and saving workfile.
+
+    Args:
+        filepath (str): the workfile path to be saved
+    """
     filename = os.path.splitext(os.path.basename(filepath))[0].strip()
-    project_name = get_current_context()["project_name"]
-    folder_path = get_current_context()["folder_path"]
-    task_name = get_current_context()["task_name"]
     current_file = registered_host().get_current_workfile()
     if current_file:
         current_file = os.path.splitext(
             os.path.basename(current_file))[0].strip()
-    work_dir = get_workdir(project_name, folder_path, task_name)
+    work_dir = get_workdir()
     for name in [ZBRUSH_METADATA_CREATE_CONTEXT,
                  ZBRUSH_SECTION_NAME_INSTANCES,
                  ZBRUSH_SECTION_NAME_CONTAINERS]:
@@ -490,10 +538,12 @@ def copy_ayon_data(filepath):
 
 
 def set_current_file(filepath=None):
-    project_name = get_current_context()["project_name"]
-    folder_path = get_current_context()["folder_path"]
-    task_name = get_current_context()["task_name"]
-    work_dir = get_workdir(project_name, folder_path, task_name)
+    """Function to store current workfile path
+
+    Args:
+        filepath (str, optional): current workfile path. Defaults to None.
+    """
+    work_dir = get_workdir()
     txt_dir = os.path.join(
         work_dir, ".zbrush_metadata").replace(
             "\\", "/"
@@ -513,17 +563,22 @@ def set_current_file(filepath=None):
 
 
 def imprint(container, representation_id):
+    """Function to update the container data from
+    the related json file in .zbrushmetadata/{workfile}/container
+    when updating or switching asset(s)
+
+    Args:
+        container (str): container
+        representation_id (str): representation id
+    """
     old_container_data = []
     data = {}
     name = container["objectName"]
-    project_name = get_current_context()["project_name"]
-    folder_path = get_current_context()["folder_path"]
-    task_name = get_current_context()["task_name"]
     current_file = registered_host().get_current_workfile()
     if current_file:
         current_file = os.path.splitext(
             os.path.basename(current_file))[0].strip()
-    work_dir = get_workdir(project_name, folder_path, task_name)
+    work_dir = get_workdir()
     json_dir = os.path.join(
         work_dir, ".zbrush_metadata",
         current_file, ZBRUSH_SECTION_NAME_CONTAINERS).replace(
@@ -546,7 +601,16 @@ def imprint(container, representation_id):
             file.write(new_container_data)
             file.close()
 
+
 def tmp_current_file_check():
+    """Function to find the latest .zpr file used
+    by the user in Zbrush.
+
+    Returns:
+        file_content (str): the filepath in .zpr format.
+            If the filepath does not end with '.zpr' format,
+            it returns None.
+    """
     output_file = tempfile.NamedTemporaryFile(
         mode="w", prefix="a_zb_cfc", suffix=".txt", delete=False
     )
@@ -558,7 +622,6 @@ def tmp_current_file_check():
     [VarSet, currentfile, [FileNameExtract, [FileNameGetLastUsed], 2+4]]
 	[MemWriteString, currentfile, #filename, 0]
 	[MemSaveToFile, currentfile, "{output_filepath}", 0]
-	[Note, currentfile]
 	[MemDelete, currentfile]
 ]
 """).format(output_filepath=output_filepath)
