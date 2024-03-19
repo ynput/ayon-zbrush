@@ -277,8 +277,10 @@ def zip_client_side(
         # Add client code content to zip
         for path, sub_path in mapping:
             zipf.write(path, sub_path)
-
-    shutil.copy(os.path.join(client_dir, "pyproject.toml"), "pyproject.toml")
+    pyproject_toml = os.path.join(client_dir, "pyproject.toml")
+    if os.path.exists(pyproject_toml):
+        shutil.copy(os.path.join(client_dir, "pyproject.toml"),
+                    "pyproject.toml")
 
 
 def create_server_package(
