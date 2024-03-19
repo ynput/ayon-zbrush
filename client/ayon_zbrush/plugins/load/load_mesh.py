@@ -10,7 +10,7 @@ class MeshLoader(load.LoaderPlugin):
     """Zbrush Model Loader."""
 
     families = ["model"]
-    representations = ["abc", "fbx", "obj"]
+    representations = ["abc", "fbx", "obj", "ma"]
     order = -9
     icon = "code-fork"
     color = "white"
