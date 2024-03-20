@@ -5,7 +5,7 @@ from ayon_core.pipeline.publish import (
     AYONPyblishPluginMixin
 )
 
-from ayon_core.hosts.zbrush.api.lib import export_tool
+from ayon_zbrush.api.lib import export_tool
 
 
 class ExtractModel(publish.Extractor,

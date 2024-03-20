@@ -6,7 +6,7 @@ from ayon_core.pipeline.publish import (
     PublishValidationError,
     RepairContextAction
 )
-from ayon_core.hosts.zbrush.api.lib import is_in_edit_mode, execute_zscript
+from ayon_zbrush.api.lib import is_in_edit_mode, execute_zscript
 
 
 class ValidateEditMode(pyblish.api.ContextPlugin,

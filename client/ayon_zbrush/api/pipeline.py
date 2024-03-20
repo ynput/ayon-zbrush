@@ -18,7 +18,7 @@ from ayon_core.pipeline.context_tools import get_global_context
 
 from ayon_core.settings import get_current_project_settings
 from ayon_core.lib import register_event_callback
-from ayon_core.hosts.zbrush import ZBRUSH_HOST_DIR
+from ayon_zbrush import ZBRUSH_HOST_DIR
 from .lib import execute_zscript, get_workdir
 
 METADATA_SECTION = "avalon"

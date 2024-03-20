@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Creator plugin for model."""
 from ayon_core.lib import NumberDef, EnumDef
-from ayon_core.hosts.zbrush.api import plugin
+from ayon_zbrush.api import plugin
 
 
 class CreateModel(plugin.ZbrushCreator):
