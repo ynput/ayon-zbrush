@@ -3,7 +3,7 @@ from ayon_core.pipeline import load, get_representation_path
 from ayon_core.hosts.zbrush.api.pipeline import (
     containerise, remove_container_data, imprint
 )
-from ayon_core.hosts.zbrush.api.lib import execute_zscript, remove_subtool
+from ayon_zbrush.api.lib import execute_zscript, remove_subtool
 
 
 class MeshLoader(load.LoaderPlugin):
