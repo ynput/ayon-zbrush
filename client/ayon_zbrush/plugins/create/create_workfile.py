@@ -2,7 +2,7 @@
 """Creator plugin for creating workfiles."""
 from ayon_core.pipeline import CreatedInstance
 from ayon_core.client import get_asset_by_name, get_asset_name_identifier
-from ayon_core.hosts.zbrush.api import plugin
+from ayon_zbrush.api import plugin
 
 class CreateWorkfile(plugin.ZbrushAutoCreator):
     """Workfile auto-creator."""

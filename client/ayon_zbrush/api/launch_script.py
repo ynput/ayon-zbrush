@@ -10,7 +10,7 @@ from qtpy import QtWidgets, QtCore, QtGui
 
 from ayon_core import style
 from ayon_core.pipeline import install_host
-from ayon_core.hosts.zbrush.api import (
+from ayon_zbrush.api import (
     ZbrushHost,
     CommunicationWrapper,
 )

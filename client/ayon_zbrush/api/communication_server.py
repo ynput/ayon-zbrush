@@ -20,7 +20,7 @@ from aiohttp_json_rpc.protocol import (
 from aiohttp_json_rpc.exceptions import RpcError
 
 from ayon_core.lib import emit_event
-from ayon_core.hosts.zbrush import ZBRUSH_HOST_DIR
+from ayon_zbrush import ZBRUSH_HOST_DIR
 
 
 log = logging.getLogger(__name__)
