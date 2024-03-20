@@ -35,10 +35,10 @@ from typing import Any, Optional, Iterable, Pattern
 
 # Name of addon
 #   - e.g. 'maya'
-ADDON_NAME: str = ""
+ADDON_NAME: str = "zbrush"
 # Name of folder where client code is located to copy 'version.py'
 #   - e.g. 'ayon_maya'
-ADDON_CLIENT_DIR: str = ""
+ADDON_CLIENT_DIR: str = "ayon_zbrush"
 
 # Patterns of directories to be skipped for server part of addon
 IGNORE_DIR_PATTERNS: list[Pattern] = [
@@ -277,8 +277,10 @@ def zip_client_side(
         # Add client code content to zip
         for path, sub_path in mapping:
             zipf.write(path, sub_path)
-
-    shutil.copy(os.path.join(client_dir, "pyproject.toml"), "pyproject.toml")
+    pyproject_toml = os.path.join(client_dir, "pyproject.toml")
+    if os.path.exists(pyproject_toml):
+        shutil.copy(os.path.join(client_dir, "pyproject.toml"),
+                    "pyproject.toml")
 
 
 def create_server_package(
