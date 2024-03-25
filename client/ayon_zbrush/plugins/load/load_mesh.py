@@ -9,7 +9,7 @@ from ayon_zbrush.api.lib import execute_zscript, remove_subtool
 class MeshLoader(load.LoaderPlugin):
     """Zbrush Model Loader."""
 
-    families = ["model"]
+    product_types = {"model"}
     representations = ["abc", "fbx", "obj", "ma"]
     order = -9
     icon = "code-fork"
