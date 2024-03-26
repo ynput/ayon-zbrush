@@ -2,7 +2,6 @@
 """Creator plugin for creating workfiles."""
 import ayon_api
 from ayon_core.pipeline import CreatedInstance
-from ayon_core.client import get_asset_by_name, get_folder_path_identifier
 from ayon_zbrush.api import plugin
 
 class CreateWorkfile(plugin.ZbrushAutoCreator):
@@ -73,8 +72,6 @@ class CreateWorkfile(plugin.ZbrushAutoCreator):
             product_name = self.get_product_name(
                 variant, task_entity, folder_entity, project_name, host_name
             )
-            folder_path = get_folder_path_identifier(folder_entity)
-
             current_instance["folderPath"] = folder_path
             current_instance["task"] = task_entity
             current_instance["subset"] = product_name
