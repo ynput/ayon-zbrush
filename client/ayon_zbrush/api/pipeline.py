@@ -118,9 +118,6 @@ class ZbrushHost(HostBase, IWorkfileHost, ILoadHost, IPublishHost):
 """)
         return filepath
 
-    def work_root(self, session):
-        return session["AYON_WORKDIR"]
-
     def get_current_workfile(self):
         work_dir = get_workdir()
         txt_dir = os.path.join(
@@ -378,6 +375,7 @@ def get_load_context_metadata():
             content = ast.literal_eval(str(data.read().strip()))
             file_content.extend(content)
             data.close()
+    return file_content
 
 
 def get_load_workfile_metadata(metadata_key):
