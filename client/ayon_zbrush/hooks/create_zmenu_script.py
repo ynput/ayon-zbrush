@@ -1,7 +1,7 @@
 """Pre-launch to force zbrush startup script."""
 import os
 from ayon_zbrush import ZBRUSH_HOST_DIR
-from ayon_core.lib.applications import PreLaunchHook, LaunchTypes
+from ayon_applications import PreLaunchHook, LaunchTypes
 
 
 
