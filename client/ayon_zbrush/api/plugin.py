@@ -79,7 +79,7 @@ class ZbrushCreator(Creator, ZbrushCreatorBase):
     def get_dynamic_data(self, *args, **kwargs):
         # Change asset and name by current workfile context
         create_context = self.create_context
-        asset_name = create_context.get_current_asset_name()
+        asset_name = create_context.get_current_folder_path()
         task_name = create_context.get_current_task_name()
         output = {}
         if asset_name:

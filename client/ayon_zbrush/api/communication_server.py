@@ -750,5 +750,6 @@ class QtCommunicator(BaseCommunicator):
         # # remove zsc script of env variable
         startup_zsc = os.path.join(
             ZBRUSH_HOST_DIR, "startup", "startup.zsc")
-        os.remove(startup_zsc)
+        if os.path.exists(startup_zsc):
+            os.remove(startup_zsc)
         self.qt_app.exit(self.exit_code)

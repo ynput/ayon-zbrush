@@ -359,7 +359,7 @@ def get_load_context_metadata():
     Returns:
         list: context data
     """
-    file_content = []
+    file_content = {}
     work_dir = get_workdir()
     json_dir = os.path.join(
         work_dir, ".zbrush_metadata", ZBRUSH_SECTION_NAME_CONTEXT).replace(
@@ -373,7 +373,7 @@ def get_load_context_metadata():
     for file in file_list:
         with open (f"{json_dir}/{file}", "r") as data:
             content = ast.literal_eval(str(data.read().strip()))
-            file_content.extend(content)
+            file_content.update(content)
             data.close()
     return file_content
 
