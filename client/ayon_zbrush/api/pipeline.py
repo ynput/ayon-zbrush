@@ -85,9 +85,9 @@ class ZbrushHost(HostBase, IWorkfileHost, ILoadHost, IPublishHost):
             return context
         # This is legacy way how context was stored
         return {
-            "project_name": context.get("project"),
+            "project_name": context.get("project_name"),
             "folder_path": context.get("folder_path"),
-            "task_name": context.get("task")
+            "task_name": context.get("task_name")
         }
 
     # --- Workfile ---
