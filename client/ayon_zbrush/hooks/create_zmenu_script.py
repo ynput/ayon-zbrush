@@ -29,18 +29,18 @@ class CreateZMenuScript(PreLaunchHook):
     def ayon_menu(self):
         python_exe = os.environ["AYON_EXECUTABLE"]
         ayon_script = ("""
+
 // Set a variable to " so we can quote the command line arguments for ShellExecute
 [VarSet, q, [StrFromAsc, 34]]
 [VarSet, addon, "addon"]
 [VarSet, zbrush, "zbrush"]
 [VarSet, zscript, "run-with-zscript"]
 [VarSet, arg, "--launcher"]
-[IPalette, "AYON", 1]
 
-[ISubPalette, "AYON:Tools", 2]
+[ISubPalette,"tool:AYON"]
 
 // Load
-[IButton, "AYON:Tools:Load...", "Open AYON Loader",
+[IButton, "tool:AYON:Load...", "Open AYON Loader",
 	[VarSet, loader, "loader_tool"]
 	[VarSet, cmd, [StrMerge, start, " ",#q, #q, "  ",#q, "{launch}", #q]]
 	[VarSet, cmd, [StrMerge, cmd, " ", #addon, #q]]
@@ -52,7 +52,7 @@ class CreateZMenuScript(PreLaunchHook):
 ]
 
 // Publish
-[IButton, "AYON:Tools:Publish...", "Open AYON Publisher",
+[IButton, "tool:AYON:Publish...", "Open AYON Publisher",
 	[VarSet, publisher, "publish_tool"]
 	[VarSet, cmd, [StrMerge, start, " ",#q, #q, "  ",#q, "{launch}", #q]]
 	[VarSet, cmd, [StrMerge, cmd, " ", #addon, #q]]
@@ -64,7 +64,7 @@ class CreateZMenuScript(PreLaunchHook):
 ]
 
 // Manage
-[IButton, "AYON:Tools:Manage...", "Open AYON Scene Inventory UI",
+[IButton, "tool:AYON:Manage...", "Open AYON Scene Inventory UI",
 	[VarSet, scene_inventory, "scene_inventory_tool"]
 	[VarSet, cmd, [StrMerge, start, " ",#q, #q, "  ",#q, "{launch}", #q]]
 	[VarSet, cmd, [StrMerge, cmd, " ", #addon, #q]]
@@ -75,9 +75,8 @@ class CreateZMenuScript(PreLaunchHook):
 	[ShellExecute, cmd], 0, 120
 ]
 
-[ISubPalette, "AYON:Project", 2]
 // Workfile
-[IButton, "AYON:Project:Work Files...", "Open AYON Work Files UI",
+[IButton, "tool:AYON:Work Files...", "Open AYON Work Files UI",
 	[VarSet, workfiles, "workfiles_tool"]
 	[VarSet, cmd, [StrMerge, start, " ",#q, #q, "  ",#q, "{launch}", #q]]
 	[VarSet, cmd, [StrMerge, cmd, " ", #addon, #q]]
