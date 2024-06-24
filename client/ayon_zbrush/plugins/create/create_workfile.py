@@ -73,6 +73,7 @@ class CreateWorkfile(plugin.ZbrushAutoCreator):
             product_name = self.get_product_name(
                 variant, task_entity, folder_entity, project_name, host_name
             )
+            current_instance["folderPath"] = folder_path
             current_instance["task"] = task_entity["name"]
             current_instance["subset"] = product_name
             current_instance["taskType"] = task_entity["taskType"]
