@@ -48,7 +48,6 @@ class CreateWorkfile(plugin.ZbrushAutoCreator):
                 "task": task_name,
                 "variant": variant,
                 "folderPath": folder_path,
-                "taskType": task_entity["taskType"],
             }
 
             new_instance = CreatedInstance(
@@ -75,5 +74,4 @@ class CreateWorkfile(plugin.ZbrushAutoCreator):
             )
             current_instance["folderPath"] = folder_path
             current_instance["task"] = task_entity["name"]
-            current_instance["subset"] = product_name
-            current_instance["taskType"] = task_entity["taskType"]
+            current_instance["productName"] = product_name
