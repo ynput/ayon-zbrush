@@ -4,6 +4,8 @@ from aiohttp_json_rpc import JsonRpcClient
 import asyncio
 from ayon_core.modules import click_wrap, AYONAddon, IHostAddon
 
+from .version import __version__
+
 ZBRUSH_HOST_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
@@ -17,6 +19,7 @@ def get_launch_script_path():
 
 class ZbrushAddon(AYONAddon, IHostAddon):
     name = "zbrush"
+    version = __version__
     host_name = "zbrush"
 
     def initialize(self, module_settings):
