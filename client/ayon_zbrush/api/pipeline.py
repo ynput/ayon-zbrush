@@ -551,7 +551,8 @@ def set_current_file(filepath=None):
     os.makedirs(txt_dir, exist_ok=True)
     txt_file = f"{txt_dir}/current_file.txt"
     if filepath is None:
-        with open(txt_file, 'w'): pass
+        with open(txt_file, "w"):
+            pass
         return filepath
     filepath_check = tmp_current_file_check()
     if filepath_check.endswith("zpr"):
