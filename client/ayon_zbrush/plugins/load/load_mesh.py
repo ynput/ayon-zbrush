@@ -24,7 +24,7 @@ class MeshLoader(load.LoaderPlugin):
 [IKeyPress, 13, [IPress, Tool:Import:Import]]
 ]
 
-""".format(filepath=file_path, name=name)
+""".format(filepath=file_path)
         execute_zscript(load_zscript)
 
         return containerise(
