@@ -17,14 +17,14 @@ class MeshLoader(load.LoaderPlugin):
 
     def load(self, context, name=None, namespace=None, data=None):
         file_path = os.path.normpath(self.filepath_from_context(context))
-        load_zscript = ("""
+        load_zscript = """
 [IFreeze,
 [VarSet, filename, "{filepath}"]
 [FileNameSetNext, #filename]
 [IKeyPress, 13, [IPress, Tool:Import:Import]]
 ]
 
-""").format(filepath=file_path, name=name)
+""".format(filepath=file_path, name=name)
         execute_zscript(load_zscript)
 
         return containerise(
@@ -35,14 +35,14 @@ class MeshLoader(load.LoaderPlugin):
     def update(self, container, context):
         repre_entity = context["representation"]
         path = get_representation_path(repre_entity)
-        load_zscript = ("""
+        load_zscript = """
 [IFreeze,
 [VarSet, filename, "{filepath}"]
 [FileNameSetNext, #filename]
 [IKeyPress, 13, [IPress, Tool:Import:Import]]
 ]
 
-""").format(filepath=path)
+""".format(filepath=path)
         execute_zscript(load_zscript)
         representation_id = str(repre_entity["id"])
         imprint(container, representation_id)

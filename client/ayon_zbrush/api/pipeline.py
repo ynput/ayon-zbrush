@@ -341,8 +341,10 @@ def write_load_metadata(data):
     os.makedirs(json_dir, exist_ok=True)
     json_file = f"{json_dir}/{name}.json"
     if os.path.exists(json_file):
-        with open(json_file, "w"): pass
-    with open (json_file, "w") as file:
+        with open(json_file, "w"):
+            pass
+
+    with open(json_file, "w") as file:
         value = json.dumps(data)
         file.write(value)
         file.close()
