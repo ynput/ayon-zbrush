@@ -22,9 +22,6 @@ class ZbrushAddon(AYONAddon, IHostAddon):
     version = __version__
     host_name = "zbrush"
 
-    def initialize(self, module_settings):
-        self.enabled = True
-
     def add_implementation_envs(self, env, _app):
         # Add AYON zscripts
         new_zbrush_paths = [
