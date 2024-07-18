@@ -2,7 +2,7 @@
 import os
 from aiohttp_json_rpc import JsonRpcClient
 import asyncio
-from ayon_core.modules import click_wrap, AYONAddon, IHostAddon
+from ayon_core.addon import click_wrap, AYONAddon, IHostAddon
 
 from .version import __version__
 
