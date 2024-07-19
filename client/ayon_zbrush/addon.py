@@ -2,7 +2,7 @@
 import os
 from aiohttp_json_rpc import JsonRpcClient
 import asyncio
-from ayon_core.modules import click_wrap, AYONAddon, IHostAddon
+from ayon_core.addon import click_wrap, AYONAddon, IHostAddon
 
 from .version import __version__
 
@@ -21,9 +21,6 @@ class ZbrushAddon(AYONAddon, IHostAddon):
     name = "zbrush"
     version = __version__
     host_name = "zbrush"
-
-    def initialize(self, module_settings):
-        self.enabled = True
 
     def add_implementation_envs(self, env, _app):
         # Add AYON zscripts
@@ -71,10 +68,11 @@ def cli_main():
 
 async def host_tools_widget(launcher_type=None):
     """Connect to WEBSOCKET_URL, call ping() and disconnect."""
+
     rpc_client = JsonRpcClient()
     ws_port = os.environ["WEBSOCKET_URL"].split(":")[-1]
     try:
-        await rpc_client.connect('localhost', ws_port)
+        await rpc_client.connect("localhost", ws_port)
         await rpc_client.call(launcher_type)
     finally:
         await rpc_client.disconnect()
