@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
+from aiohttp_json_rpc import JsonRpcClient
+import asyncio
 from ayon_core.addon import click_wrap, AYONAddon, IHostAddon
 
 from .version import __version__
@@ -64,9 +66,19 @@ def cli_main():
     pass
 
 
+async def host_tools_widget(launcher_type=None):
+    """Connect to WEBSOCKET_URL, call ping() and disconnect."""
+
+    rpc_client = JsonRpcClient()
+    ws_port = os.environ["WEBSOCKET_URL"].split(":")[-1]
+    try:
+        await rpc_client.connect("localhost", ws_port)
+        await rpc_client.call(launcher_type)
+    finally:
+        await rpc_client.disconnect()
+
+
 @cli_main.command(help="Call AYON plugins command")
 @click_wrap.option("--launcher", help="Type of Launcher")
 def run_with_zscript(launcher):
-    from ._run_zscript import main
-
-    main(launcher)
+    asyncio.run(host_tools_widget(launcher))
