@@ -15,7 +15,7 @@ class LaunchServerNoWindow(PreLaunchHook):
     def execute(self):
 
         self.launch_context.kwargs.update({
-            "creationflags": subprocess.CREATE_NO_WINDOW,
+            "creationflags": subprocess.CREATE_NEW_CONSOLE,
             "stdout": None,
             "stderr": None
         })
