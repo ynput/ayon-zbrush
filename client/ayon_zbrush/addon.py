@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 import os
-from aiohttp_json_rpc import JsonRpcClient
-import asyncio
-from ayon_core.modules import click_wrap, AYONAddon, IHostAddon
+from ayon_core.addon import click_wrap, AYONAddon, IHostAddon
+
+from .version import __version__
 
 ZBRUSH_HOST_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -17,10 +17,8 @@ def get_launch_script_path():
 
 class ZbrushAddon(AYONAddon, IHostAddon):
     name = "zbrush"
+    version = __version__
     host_name = "zbrush"
-
-    def initialize(self, module_settings):
-        self.enabled = True
 
     def add_implementation_envs(self, env, _app):
         # Add AYON zscripts
@@ -66,18 +64,9 @@ def cli_main():
     pass
 
 
-async def host_tools_widget(launcher_type=None):
-    """Connect to WEBSOCKET_URL, call ping() and disconnect."""
-    rpc_client = JsonRpcClient()
-    ws_port = os.environ["WEBSOCKET_URL"].split(":")[-1]
-    try:
-        await rpc_client.connect('localhost', ws_port)
-        await rpc_client.call(launcher_type)
-    finally:
-        await rpc_client.disconnect()
-
-
 @cli_main.command(help="Call AYON plugins command")
 @click_wrap.option("--launcher", help="Type of Launcher")
 def run_with_zscript(launcher):
-    asyncio.run(host_tools_widget(launcher))
+    from ._run_zscript import main
+
+    main(launcher)

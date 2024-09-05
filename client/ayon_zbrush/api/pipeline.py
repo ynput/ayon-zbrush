@@ -341,8 +341,10 @@ def write_load_metadata(data):
     os.makedirs(json_dir, exist_ok=True)
     json_file = f"{json_dir}/{name}.json"
     if os.path.exists(json_file):
-        with open(json_file, "w"): pass
-    with open (json_file, "w") as file:
+        with open(json_file, "w"):
+            pass
+
+    with open(json_file, "w") as file:
         value = json.dumps(data)
         file.write(value)
         file.close()
@@ -549,7 +551,8 @@ def set_current_file(filepath=None):
     os.makedirs(txt_dir, exist_ok=True)
     txt_file = f"{txt_dir}/current_file.txt"
     if filepath is None:
-        with open(txt_file, 'w'): pass
+        with open(txt_file, "w"):
+            pass
         return filepath
     filepath_check = tmp_current_file_check()
     if filepath_check.endswith("zpr"):
