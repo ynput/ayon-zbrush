@@ -2,9 +2,9 @@
 /package/*
 
 # zscript menu
-/client/ayon-zbrush/api/zscripts
+/client/ayon-zbrush/api/zscripts/
 # startup
-/client/ayon-zbrush/startup
+/client/ayon-zbrush/startup/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
