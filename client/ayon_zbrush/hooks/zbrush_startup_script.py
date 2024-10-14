@@ -2,7 +2,7 @@
 """Pre-launch to force zbrush startup script."""
 import os
 from ayon_zbrush import ZBRUSH_HOST_DIR, get_launch_script_path
-from ayon_core.lib import get_openpype_execute_args
+from ayon_core.lib import get_ayon_launcher_args
 from ayon_applications import PreLaunchHook, LaunchTypes
 
 
@@ -26,7 +26,7 @@ class ZBrushStartupScript(PreLaunchHook):
         while self.launch_context.launch_args:
             remainders.append(self.launch_context.launch_args.pop(0))
 
-        new_launch_args = get_openpype_execute_args(
+        new_launch_args = get_ayon_launcher_args(
             "run", get_launch_script_path(), executable_path
         )
 
