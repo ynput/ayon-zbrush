@@ -2,7 +2,7 @@
 """Package declaring Zbrush addon version."""
 name = "zbrush"
 title = "Zbrush"
-version = "0.2.1-dev.1"
+version = "0.3.0"
 client_dir = "ayon_zbrush"
 
 ayon_required_addons = {
