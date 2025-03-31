@@ -1,6 +1,7 @@
 
 import pyblish.api
 from ayon_core.pipeline import registered_host
+import keyboard
 
 
 class CollectCurrentFile(pyblish.api.ContextPlugin):
