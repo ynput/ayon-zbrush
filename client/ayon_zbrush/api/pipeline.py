@@ -118,9 +118,7 @@ class ZbrushHost(HostBase, IWorkfileHost, ILoadHost, IPublishHost):
         return filepath
 
     def get_current_workfile(self):
-        if not os.getenv("CURRENT_ZPR", ""):
-            return ""
-        return os.environ["CURRENT_ZPR"]
+        return os.getenv("CURRENT_ZPR", "")
 
     def workfile_has_unsaved_changes(self):
         # Pop-up dialog would be located to ask if users
