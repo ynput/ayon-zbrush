@@ -183,7 +183,7 @@ class ZbrushHost(HostBase, IWorkfileHost, ILoadHost, IPublishHost):
 def containerise(
         name, context, namespace="", loader=None, containers=None):
     data = {
-        "schema": "ayon:container-2.0",
+        "schema": "ayon:container-3.0",
         "id": AYON_CONTAINER_ID,
         "name": name,
         "namespace": namespace,
