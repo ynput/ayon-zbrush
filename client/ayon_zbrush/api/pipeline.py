@@ -98,7 +98,7 @@ class ZbrushHost(HostBase, IWorkfileHost, ILoadHost, IPublishHost):
     [IKeyPress, 13, [IPress, File:Open:Open]]]
 ]
     """)
-        os.environ["CURRENT_ZPR"] = filepath
+        os.environ["AYON_CURRENT_ZPR"] = filepath
         return filepath
 
     def save_workfile(self, filepath=None):
@@ -108,7 +108,7 @@ class ZbrushHost(HostBase, IWorkfileHost, ILoadHost, IPublishHost):
         # # move the json data to the files
         # # shutil.copy
         copy_ayon_data(filepath)
-        os.environ["CURRENT_ZPR"] = filepath
+        os.environ["AYON_CURRENT_ZPR"] = filepath
         execute_zscript(f"""
 [IFreeze,
     [FileNameSetNext, "{filepath}"]
@@ -118,7 +118,7 @@ class ZbrushHost(HostBase, IWorkfileHost, ILoadHost, IPublishHost):
         return filepath
 
     def get_current_workfile(self):
-        return os.getenv("CURRENT_ZPR", "")
+        return os.getenv("AYON_CURRENT_ZPR", "")
 
     def workfile_has_unsaved_changes(self):
         # Pop-up dialog would be located to ask if users
