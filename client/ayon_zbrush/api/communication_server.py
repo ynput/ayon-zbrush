@@ -9,7 +9,6 @@ import logging
 import socket
 import tempfile
 import threading
-import shutil
 from contextlib import closing
 
 from aiohttp import web
@@ -473,80 +472,6 @@ class BaseCommunicator:
         if self.websocket_server is None:
             return False
         return self.websocket_server.server_is_running
-
-    def _windows_file_process(self, src_dst_mapping, to_remove):
-        """Windows specific file processing asking for admin permissions.
-
-        It is required to have administration permissions to modify plugin
-        files in Zbrush installation folder.
-
-        Method requires `pywin32` python module.
-
-        Args:
-            src_dst_mapping (list, tuple, set): Mapping of source file to
-                destination. Both must be full path. Each item must be iterable
-                of size 2 `(C:/src/file.dll, C:/dst/file.dll)`.
-            to_remove (list): Fullpath to files that should be removed.
-        """
-
-        import pythoncom
-        from win32comext.shell import shell
-
-        # Create temp folder where plugin files are temporary copied
-        # - reason is that copy to Zbrush requires administrator permissions
-        #   but admin may not have access to source folder
-        tmp_dir = os.path.normpath(
-            tempfile.mkdtemp(prefix="Zbrush_copy_")
-        )
-
-        # Copy source to temp folder and create new mapping
-        dst_folders = collections.defaultdict(list)
-        new_src_dst_mapping = []
-        for old_src, dst in src_dst_mapping:
-            new_src = os.path.join(tmp_dir, os.path.split(old_src)[1])
-            shutil.copy(old_src, new_src)
-            new_src_dst_mapping.append((new_src, dst))
-
-        for src, dst in new_src_dst_mapping:
-            src = os.path.normpath(src)
-            dst = os.path.normpath(dst)
-            dst_filename = os.path.basename(dst)
-            dst_folder_path = os.path.dirname(dst)
-            dst_folders[dst_folder_path].append((dst_filename, src))
-
-        # create an instance of IFileOperation
-        fo = pythoncom.CoCreateInstance(
-            shell.CLSID_FileOperation,
-            None,
-            pythoncom.CLSCTX_ALL,
-            shell.IID_IFileOperation
-        )
-        # Add delete command to file operation object
-        for filepath in to_remove:
-            item = shell.SHCreateItemFromParsingName(
-                filepath, None, shell.IID_IShellItem
-            )
-            fo.DeleteItem(item)
-
-        # here you can use SetOperationFlags, progress Sinks, etc.
-        for folder_path, items in dst_folders.items():
-            # create an instance of IShellItem for the target folder
-            folder_item = shell.SHCreateItemFromParsingName(
-                folder_path, None, shell.IID_IShellItem
-            )
-            for _dst_filename, source_file_path in items:
-                # create an instance of IShellItem for the source item
-                copy_item = shell.SHCreateItemFromParsingName(
-                    source_file_path, None, shell.IID_IShellItem
-                )
-                # queue the copy operation
-                fo.CopyItem(copy_item, folder_item, _dst_filename, None)
-
-        # commit
-        fo.PerformOperations()
-
-        # Remove temp folder
-        shutil.rmtree(tmp_dir)
 
     def _launch_zbrush(self, launch_args):
         flags = (

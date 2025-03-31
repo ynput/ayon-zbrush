@@ -11,7 +11,7 @@ from ayon_core.host import HostBase, IWorkfileHost, ILoadHost, IPublishHost
 from ayon_core.pipeline import (
     register_creator_plugin_path,
     register_loader_plugin_path,
-    AVALON_CONTAINER_ID,
+    AYON_CONTAINER_ID,
     registered_host
 )
 from ayon_core.pipeline.context_tools import get_global_context
@@ -21,7 +21,6 @@ from ayon_core.lib import register_event_callback
 from ayon_zbrush import ZBRUSH_HOST_DIR
 from .lib import execute_zscript, get_workdir
 
-METADATA_SECTION = "avalon"
 ZBRUSH_SECTION_NAME_CONTEXT = "context"
 ZBRUSH_METADATA_CREATE_CONTEXT = "create_context"
 ZBRUSH_SECTION_NAME_INSTANCES = "instances"
@@ -99,7 +98,7 @@ class ZbrushHost(HostBase, IWorkfileHost, ILoadHost, IPublishHost):
     [IKeyPress, 13, [IPress, File:Open:Open]]]
 ]
     """)
-        set_current_file(filepath=filepath)
+        os.environ["AYON_CURRENT_ZPR"] = filepath
         return filepath
 
     def save_workfile(self, filepath=None):
@@ -109,7 +108,7 @@ class ZbrushHost(HostBase, IWorkfileHost, ILoadHost, IPublishHost):
         # # move the json data to the files
         # # shutil.copy
         copy_ayon_data(filepath)
-        set_current_file(filepath=filepath)
+        os.environ["AYON_CURRENT_ZPR"] = filepath
         execute_zscript(f"""
 [IFreeze,
     [FileNameSetNext, "{filepath}"]
@@ -119,16 +118,7 @@ class ZbrushHost(HostBase, IWorkfileHost, ILoadHost, IPublishHost):
         return filepath
 
     def get_current_workfile(self):
-        work_dir = get_workdir()
-        txt_dir = os.path.join(
-            work_dir, ".zbrush_metadata").replace(
-                "\\", "/"
-        )
-        with open (f"{txt_dir}/current_file.txt", "r") as current_file:
-            content = str(current_file.read())
-            filepath = content.rstrip('\x00')
-            current_file.close()
-            return filepath
+        return os.getenv("AYON_CURRENT_ZPR", "")
 
     def workfile_has_unsaved_changes(self):
         # Pop-up dialog would be located to ask if users
@@ -160,8 +150,6 @@ class ZbrushHost(HostBase, IWorkfileHost, ILoadHost, IPublishHost):
 
         Usually this aligns roughly with the start of Zbrush.
         """
-        #TODO: figure out how to deal with the last workfile issue
-        set_current_file()
         context = get_global_context()
         save_current_workfile_context(context)
 
@@ -193,8 +181,8 @@ class ZbrushHost(HostBase, IWorkfileHost, ILoadHost, IPublishHost):
 def containerise(
         name, context, namespace="", loader=None, containers=None):
     data = {
-        "schema": "openpype:container-2.0",
-        "id": AVALON_CONTAINER_ID,
+        "schema": "ayon:container-3.0",
+        "id": AYON_CONTAINER_ID,
         "name": name,
         "namespace": namespace,
         "loader": str(loader),
@@ -535,32 +523,6 @@ def copy_ayon_data(filepath):
                 src_json = f"{src_json_dir}/{fname}"
                 dst_json = f"{dst_json_dir}/{fname}"
                 shutil.copy(src_json, dst_json)
-
-
-def set_current_file(filepath=None):
-    """Function to store current workfile path
-
-    Args:
-        filepath (str, optional): current workfile path. Defaults to None.
-    """
-    work_dir = get_workdir()
-    txt_dir = os.path.join(
-        work_dir, ".zbrush_metadata").replace(
-            "\\", "/"
-    )
-    os.makedirs(txt_dir, exist_ok=True)
-    txt_file = f"{txt_dir}/current_file.txt"
-    if filepath is None:
-        with open(txt_file, "w"):
-            pass
-        return filepath
-    filepath_check = tmp_current_file_check()
-    if filepath_check.endswith("zpr"):
-        filepath = os.path.join(
-            os.path.dirname(filepath), filepath_check).replace("\\", "/")
-    with open (txt_file, "w") as current_file:
-        current_file.write(filepath)
-        current_file.close()
 
 
 def imprint(container, representation_id):
