@@ -84,6 +84,7 @@ class ZbrushCreator(Creator, ZbrushCreatorBase):
         output = {}
         if asset_name:
             output["asset"] = asset_name
+            output["folderPath"] = asset_name
             if task_name:
                 output["task"] = task_name
         return output

@@ -21,7 +21,6 @@ from ayon_core.lib import register_event_callback
 from ayon_zbrush import ZBRUSH_HOST_DIR
 from .lib import execute_zscript, get_workdir
 
-METADATA_SECTION = "avalon"
 ZBRUSH_SECTION_NAME_CONTEXT = "context"
 ZBRUSH_METADATA_CREATE_CONTEXT = "create_context"
 ZBRUSH_SECTION_NAME_INSTANCES = "instances"
