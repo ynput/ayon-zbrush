@@ -10,7 +10,7 @@ class CreateModel(plugin.ZbrushCreator):
     label = "Model"
     product_type = "model"
     icon = "cube"
-    export_format = "fbx"
+    export_format = "obj"
 
     def create(self, product_name, instance_data, pre_create_data):
         creator_attributes = instance_data.setdefault(
