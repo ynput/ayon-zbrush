@@ -17,7 +17,7 @@ class IncrementWorkfileVersion(pyblish.api.ContextPlugin):
 
     def process(self, context):
         host: IWorkfileHost = registered_host()
-        current_filepath: str = host.get_current_workfile()
+        current_filepath: str = context.data["currentFile"]
 
         try:
             from ayon_core.pipeline.workfile import save_next_version
