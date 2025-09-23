@@ -58,7 +58,7 @@ class CreateWorkfile(plugin.ZbrushAutoCreator):
             self._add_instance_to_context(new_instance)
 
         elif (
-            current_instance_asset != folder_path
+            current_instance_folder_path != folder_path
             or current_instance["task"] != task_name
         ):
             # Update instance context if is not the same
