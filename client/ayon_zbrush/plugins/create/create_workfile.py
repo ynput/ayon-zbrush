@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 """Creator plugin for creating workfiles."""
-import ayon_api
 from ayon_core.pipeline import CreatedInstance
+
 from ayon_zbrush.api import plugin
+
 
 class CreateWorkfile(plugin.ZbrushAutoCreator):
     """Workfile auto-creator."""
