@@ -10,6 +10,7 @@ class CreateWorkfile(plugin.ZbrushAutoCreator):
     identifier = "io.ayon.creators.zbrush.workfile"
     label = "Workfile"
     product_type = "workfile"
+    product_base_type = "workfile"
     icon = "fa5.file"
 
     default_variant = "Main"

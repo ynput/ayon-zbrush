@@ -9,6 +9,7 @@ class CreateModel(plugin.ZbrushCreator):
     identifier = "io.ayon.creators.zbrush.model"
     label = "Model"
     product_type = "model"
+    product_base_type = "model"
     icon = "cube"
     export_format = "obj"
 
