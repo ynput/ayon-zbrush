@@ -1,4 +1,3 @@
-import inspect
 from ayon_core.pipeline import CreatedInstance, Creator, AutoCreator
 from ayon_core.pipeline.create.creator_plugins import cache_and_get_instances
 
