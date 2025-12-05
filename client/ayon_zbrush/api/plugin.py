@@ -54,13 +54,6 @@ class ZbrushCreator(Creator, ZbrushCreatorBase):
                     self.product_base_type
                 )
         new_instance = CreatedInstance(**instance_kwargs)
-        # TODO: use selection
-        new_instance = CreatedInstance(
-        self.product_type,
-        product_name,
-        instance_data,
-        self
-    )
         self._store_new_instance(new_instance)
 
     def collect_instances(self):
