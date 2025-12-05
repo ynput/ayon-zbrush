@@ -1,9 +1,6 @@
 import os
 import asyncio
 import logging
-import traceback
-import sys
-from datetime import datetime
 
 from aiohttp_json_rpc import JsonRpcClient
 
