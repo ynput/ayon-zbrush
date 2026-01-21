@@ -74,21 +74,6 @@ class ZbrushCreator(Creator, ZbrushCreatorBase):
         for instance in instances:
             self._remove_instance_from_context(instance)
 
-    # Helper methods (this might get moved into Creator class)
-    def get_dynamic_data(self, *args, **kwargs):
-        # Change asset and name by current workfile context
-        create_context = self.create_context
-        folder_path = create_context.get_current_folder_path()
-        task_name = create_context.get_current_task_name()
-        output = {}
-        if folder_path:
-            folder_name = folder_path.rsplit("/")[-1]
-            output["asset"] = folder_name
-            output["folder"] = {"name": folder_name}
-            if task_name:
-                output["task"] = task_name
-        return output
-
     def _store_new_instance(self, new_instance):
         instances_data = self.host.list_instances()
         instances_data.append(new_instance.data_to_store())

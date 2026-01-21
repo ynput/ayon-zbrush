@@ -52,7 +52,10 @@ class CreateWorkfile(plugin.ZbrushAutoCreator):
             }
 
             new_instance = CreatedInstance(
-                self.product_type, product_name, data, self
+                product_type=self.product_type,
+                product_name=product_name,
+                data=data,
+                creator=self,
             )
             instances_data = self.host.list_instances()
             instances_data.append(new_instance.data_to_store())
