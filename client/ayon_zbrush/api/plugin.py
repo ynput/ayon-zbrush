@@ -41,7 +41,7 @@ class ZbrushCreatorBase:
 class ZbrushCreator(Creator, ZbrushCreatorBase):
     def create(self, product_name, instance_data, pre_create_data):
         new_instance = CreatedInstance(
-            self.product_type,
+            self.product_base_type,
             product_name,
             instance_data,
             self,
