@@ -9,8 +9,8 @@ class CreateWorkfile(plugin.ZbrushAutoCreator):
     """Workfile auto-creator."""
     identifier = "io.ayon.creators.zbrush.workfile"
     label = "Workfile"
-    product_type = "workfile"
     product_base_type = "workfile"
+    product_type = product_base_type
     icon = "fa5.file"
 
     default_variant = "Main"
@@ -44,6 +44,7 @@ class CreateWorkfile(plugin.ZbrushAutoCreator):
                 task_entity=task_entity,
                 variant=variant,
                 host_name=host_name,
+                product_type=self.product_base_type,
             )
             data = {
                 "task": task_name,
@@ -52,7 +53,8 @@ class CreateWorkfile(plugin.ZbrushAutoCreator):
             }
 
             new_instance = CreatedInstance(
-                product_type=self.product_type,
+                product_base_type=self.product_base_type,
+                product_type=self.product_base_type,
                 product_name=product_name,
                 data=data,
                 creator=self,
