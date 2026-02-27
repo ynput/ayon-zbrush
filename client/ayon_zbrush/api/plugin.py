@@ -39,6 +39,9 @@ class ZbrushCreatorBase:
 
 
 class ZbrushCreator(Creator, ZbrushCreatorBase):
+    settings_category = "zbrush"
+    skip_discovery = True
+
     def create(self, product_name, instance_data, pre_create_data):
         product_type = instance_data.get("productType")
         if not product_type:
@@ -86,6 +89,9 @@ class ZbrushCreator(Creator, ZbrushCreatorBase):
 
 
 class ZbrushAutoCreator(AutoCreator, ZbrushCreatorBase):
+    settings_category = "zbrush"
+    skip_discovery = True
+
     def collect_instances(self):
         self._collect_instances()
 
