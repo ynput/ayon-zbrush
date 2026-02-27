@@ -8,6 +8,6 @@ client_dir = "ayon_zbrush"
 
 ayon_server_version = ">=1.1.2"
 ayon_required_addons = {
-    "core": ">=1.7.0",
+    "core": ">=1.8.0",
 }
 ayon_compatible_addons = {}
