@@ -11,7 +11,8 @@ class MeshLoader(load.LoaderPlugin):
 
     product_base_types = {"model"}
     product_types = product_base_types
-    representations = {"abc", "fbx", "obj", "ma"}
+    representations = {"*"}
+    extensions = {"abc", "fbx", "obj", "ma"}
     order = -9
     icon = "code-fork"
     color = "white"
