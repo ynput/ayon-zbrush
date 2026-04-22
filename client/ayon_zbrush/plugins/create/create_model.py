@@ -8,7 +8,8 @@ class CreateModel(plugin.ZbrushCreator):
     """Creator plugin for Model."""
     identifier = "io.ayon.creators.zbrush.model"
     label = "Model"
-    product_type = "model"
+    product_base_type = "model"
+    product_type = product_base_type
     icon = "cube"
     export_format = "obj"
 
@@ -19,10 +20,11 @@ class CreateModel(plugin.ZbrushCreator):
             if key in pre_create_data:
                 creator_attributes[key] = pre_create_data[key]
 
-        super(CreateModel, self).create(
+        super().create(
             product_name,
             instance_data,
-            pre_create_data)
+            pre_create_data
+        )
 
     def get_instance_attr_defs(self):
         export_format_enum = ["abc", "fbx", "obj"]

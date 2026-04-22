@@ -39,14 +39,20 @@ class ZbrushCreatorBase:
 
 
 class ZbrushCreator(Creator, ZbrushCreatorBase):
+    settings_category = "zbrush"
+    skip_discovery = True
+
     def create(self, product_name, instance_data, pre_create_data):
-        # TODO: use selection
+        product_type = instance_data.get("productType")
+        if not product_type:
+            product_type = self.product_base_type
         new_instance = CreatedInstance(
-        self.product_type,
-        product_name,
-        instance_data,
-        self
-    )
+            product_base_type=self.product_base_type,
+            product_type=product_type,
+            product_name=product_name,
+            data=instance_data,
+            creator=self,
+        )
         self._store_new_instance(new_instance)
 
     def collect_instances(self):
@@ -75,21 +81,6 @@ class ZbrushCreator(Creator, ZbrushCreatorBase):
         for instance in instances:
             self._remove_instance_from_context(instance)
 
-    # Helper methods (this might get moved into Creator class)
-    def get_dynamic_data(self, *args, **kwargs):
-        # Change asset and name by current workfile context
-        create_context = self.create_context
-        folder_path = create_context.get_current_folder_path()
-        task_name = create_context.get_current_task_name()
-        output = {}
-        if folder_path:
-            folder_name = folder_path.rsplit("/")[-1]
-            output["asset"] = folder_name
-            output["folder"] = {"name": folder_name}
-            if task_name:
-                output["task"] = task_name
-        return output
-
     def _store_new_instance(self, new_instance):
         instances_data = self.host.list_instances()
         instances_data.append(new_instance.data_to_store())
@@ -98,6 +89,9 @@ class ZbrushCreator(Creator, ZbrushCreatorBase):
 
 
 class ZbrushAutoCreator(AutoCreator, ZbrushCreatorBase):
+    settings_category = "zbrush"
+    skip_discovery = True
+
     def collect_instances(self):
         self._collect_instances()
 

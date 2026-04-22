@@ -5,7 +5,7 @@ from ayon_core.pipeline import registered_host
 
 class CollectCurrentFile(pyblish.api.ContextPlugin):
     label = "Collect Current File"
-    order = pyblish.api.CollectorOrder - 0.4
+    order = pyblish.api.CollectorOrder - 0.5
     hosts = ["zbrush"]
 
     def process(self, context):
