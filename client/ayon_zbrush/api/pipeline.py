@@ -187,6 +187,7 @@ def containerise(
         "namespace": namespace,
         "loader": str(loader),
         "representation": str(context["representation"]["id"]),
+        "project_name": context["project"]["name"],
     }
     if containers is None:
         containers = get_containers()
@@ -525,7 +526,7 @@ def copy_ayon_data(filepath):
                 shutil.copy(src_json, dst_json)
 
 
-def imprint(container, representation_id):
+def imprint(container, representation_id, project_name):
     """Function to update the container data from
     the related json file in .zbrushmetadata/{workfile}/container
     when updating or switching asset(s)
@@ -533,6 +534,7 @@ def imprint(container, representation_id):
     Args:
         container (str): container
         representation_id (str): representation id
+        project_name (str): the name of the project
     """
     old_container_data = []
     data = {}
@@ -558,6 +560,7 @@ def imprint(container, representation_id):
         open(f"{json_dir}/{js_fname}", 'w').close()
         for item in old_container_data:
             item["representation"] = representation_id
+            item["project_name"] = project_name
             data.update(item)
         with open(f"{json_dir}/{js_fname}", "w") as file:
             new_container_data = json.dumps([data])
