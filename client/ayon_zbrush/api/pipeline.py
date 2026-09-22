@@ -558,8 +558,9 @@ def imprint(container, container_data):
             file.close()
 
         open(f"{json_dir}/{js_fname}", 'w').close()
-        data = item.copy()
-        data.update(container_data)
+        for item in old_container_data:
+            data = item.copy()
+            data.update(item)
         with open(f"{json_dir}/{js_fname}", "w") as file:
             new_container_data = json.dumps([data])
             file.write(new_container_data)
