@@ -526,15 +526,15 @@ def copy_ayon_data(filepath):
                 shutil.copy(src_json, dst_json)
 
 
-def imprint(container, representation_id, project_name):
+def imprint(container, container_data):
     """Function to update the container data from
     the related json file in .zbrushmetadata/{workfile}/container
     when updating or switching asset(s)
 
     Args:
         container (str): container
-        representation_id (str): representation id
-        project_name (str): the name of the project
+        container_data (dict): a dictionary containing
+        representation_id and project_name
     """
     old_container_data = []
     data = {}
@@ -559,8 +559,8 @@ def imprint(container, representation_id, project_name):
 
         open(f"{json_dir}/{js_fname}", 'w').close()
         for item in old_container_data:
-            item["representation"] = representation_id
-            item["project_name"] = project_name
+            item["representation"] = container_data.get("representation")
+            item["project_name"] = container_data.get("project_name")
             data.update(item)
         with open(f"{json_dir}/{js_fname}", "w") as file:
             new_container_data = json.dumps([data])
