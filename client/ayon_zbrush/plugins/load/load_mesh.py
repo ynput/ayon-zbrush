@@ -46,7 +46,9 @@ class MeshLoader(load.LoaderPlugin):
 """.format(filepath=path)
         execute_zscript(load_zscript)
         representation_id = str(repre_entity["id"])
-        imprint(container, representation_id)
+        imprint(container,
+                {"representation": representation_id,
+                 "project_name": context["project"]["name"]})
 
     def switch(self, container, context):
         self.update(container, context)
