@@ -21,9 +21,12 @@ class ZbrushAddon(AYONAddon, IHostAddon):
     host_name = "zbrush"
 
     def add_implementation_envs(self, env, _app):
-        # Add AYON zscripts
+        # Add AYON zscripts and python plugins
         new_zbrush_paths = [
-            os.path.join(ZBRUSH_HOST_DIR, "api", "zscripts")
+            # ZScripts with the AYON menu, generated before each launch
+            os.path.join(ZBRUSH_HOST_DIR, "api", "zscripts"),
+            # Python plugins, executed by ZBrush on start (ZBrush 2026+)
+            os.path.join(ZBRUSH_HOST_DIR, "api", "python_plugins"),
         ]
         old_zbrush_path = env.get("ZBRUSH_PLUGIN_PATH") or ""
         for path in old_zbrush_path.split(os.pathsep):
