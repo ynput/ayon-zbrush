@@ -1,7 +1,9 @@
 import os
 from ayon_core.pipeline import load, get_representation_path
 from ayon_zbrush.api.pipeline import (
-    containerise, remove_container_data, imprint
+    containerise,
+    remove_container_data,
+    imprint
 )
 from ayon_zbrush.api.lib import execute_zscript, remove_subtool
 
@@ -16,7 +18,7 @@ class MeshLoader(load.LoaderPlugin):
     icon = "code-fork"
     color = "white"
 
-    def load(self, context, name=None, namespace=None, data=None):
+    def load(self, context, name=None, namespace=None, options=None):
         file_path = os.path.normpath(self.filepath_from_context(context))
         load_zscript = """
 [IFreeze,
@@ -56,5 +58,6 @@ class MeshLoader(load.LoaderPlugin):
     def remove(self, container):
         # TODO: figure out how to delete imported object
         # remove the bind with the container data
-        remove_subtool(container["objectName"])
-        return remove_container_data(container["objectName"])
+        name = container.get("objectName")
+        remove_subtool(name)
+        return remove_container_data(name)
