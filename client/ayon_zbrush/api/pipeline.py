@@ -178,13 +178,68 @@ class ZbrushHost(HostBase, IWorkfileHost, ILoadHost, IPublishHost):
         get_load_workfile_metadata(ZBRUSH_METADATA_CREATE_CONTEXT)
 
 
-def containerise(
-        name, context, namespace="", loader=None, containers=None):
+def get_current_workfile_name():
+    """Name of the current workfile used for metadata folders.
+
+    Returns:
+        str: Workfile name without extension, empty string when no
+            workfile is opened.
+    """
+    current_file = registered_host().get_current_workfile()
+    if not current_file:
+        return ""
+    return os.path.splitext(
+        os.path.basename(current_file))[0].strip()
+
+
+def get_container_name(container):
+    """Name of a container.
+
+    The name can be stored as a list of names, and containers written by
+    older versions of the addon might have it under 'objectName'.
+
+    Args:
+        container (dict): Container data.
+
+    Returns:
+        Union[str, None]: Name of the container.
+    """
+    name = container.get("name") or container.get("objectName")
+    if isinstance(name, (list, tuple, set)):
+        name = "|".join(str(item) for item in name)
+    return name
+
+
+def prepare_container_data(container):
+    """Prepare a container to be stored in the workfile metadata.
+
+    Containers written by older versions of the addon are converted to
+    the AYON naming when they are stored again, so the metadata of a
+    workfile is unified by using it.
+
+    Args:
+        container (dict): Container data.
+
+    Returns:
+        dict: Copy of the container using the AYON naming.
+    """
+    data = dict(container)
+    data["schema"] = "ayon:container-3.0"
+    data["id"] = AYON_CONTAINER_ID
+    name = get_container_name(container)
+    if name:
+        data["name"] = name
+    # Keys of the previous naming, the name is handled above
+    data.pop("namespace", None)
+    data.pop("objectName", None)
+    return data
+
+
+def containerise(name, context, loader=None, containers=None):
     data = {
         "schema": "ayon:container-3.0",
         "id": AYON_CONTAINER_ID,
         "name": name,
-        "namespace": namespace,
         "loader": str(loader),
         "representation": str(context["representation"]["id"]),
         "project_name": context["project"]["name"],
@@ -258,10 +313,7 @@ def write_workfile_metadata(metadata_key, data=None):
     """
     if data is None:
         data = []
-    current_file = registered_host().get_current_workfile()
-    if current_file:
-        current_file = os.path.splitext(
-            os.path.basename(current_file))[0].strip()
+    current_file = get_current_workfile_name()
     work_dir = get_workdir()
     json_dir = os.path.join(
         work_dir, ".zbrush_metadata",
@@ -289,54 +341,49 @@ def get_current_workfile_context():
 
 
 def get_containers():
-    """Function to get the container data
+    """Container data of the current workfile.
 
     Returns:
         list: list of container data
     """
-    output = get_load_workfile_metadata(ZBRUSH_SECTION_NAME_CONTAINERS)
-    if output:
-        for item in output:
-            if "objectName" not in item and "name" in item:
-                members = item["name"]
-                if isinstance(members, list):
-                    members = "|".join([str(member) for member in members])
-                item["objectName"] = members
-
-    return output
+    containers = get_load_workfile_metadata(ZBRUSH_SECTION_NAME_CONTAINERS)
+    for container in containers:
+        name = get_container_name(container)
+        if name:
+            container["name"] = name
+    return containers
 
 
 def write_load_metadata(data):
-    """Write/Edit the container data into the related json file("{subset_name}.json")
-    which stores in .zbrush_metadata/{workfile}/containers folder.
-    This persists the current in-memory containers data
-    to be set for updating and switching assets in scene inventory.
+    """Write the container data of the current workfile.
+
+    Every container is stored in its own `{name}.json` file in the
+    `.zbrush_metadata/{workfile}/containers` folder in the project work
+    directory, used to update containers and to keep scene inventory
+    data in sync.
 
     Args:
-        metadata_key (str): metadata key for container
         data (list): list of container data
     """
-    current_file = registered_host().get_current_workfile()
-    if current_file:
-        current_file = os.path.splitext(
-            os.path.basename(current_file))[0].strip()
+    current_file = get_current_workfile_name()
     work_dir = get_workdir()
-    name = next((d["name"] for d in data), None)
     json_dir = os.path.join(
         work_dir, ".zbrush_metadata",
         current_file, ZBRUSH_SECTION_NAME_CONTAINERS).replace(
             "\\", "/"
         )
     os.makedirs(json_dir, exist_ok=True)
-    json_file = f"{json_dir}/{name}.json"
-    if os.path.exists(json_file):
-        with open(json_file, "w"):
-            pass
-
-    with open(json_file, "w") as file:
-        value = json.dumps(data)
-        file.write(value)
-        file.close()
+    for container in data:
+        name = get_container_name(container)
+        if not name:
+            log.warning(
+                "Container without a name cannot be stored: {}".format(
+                    container)
+            )
+            continue
+        prepared = prepare_container_data(container)
+        with open(f"{json_dir}/{name}.json", "w") as file:
+            file.write(json.dumps([prepared]))
 
 
 def get_load_context_metadata():
@@ -362,24 +409,28 @@ def get_load_context_metadata():
     if not file_list:
         return file_content
     for file in file_list:
-        with open (f"{json_dir}/{file}", "r") as data:
-            content = ast.literal_eval(str(data.read().strip()))
-            file_content.update(content)
-            data.close()
+        with open(f"{json_dir}/{file}", "r") as stream:
+            text = stream.read().strip()
+        try:
+            content = json.loads(text)
+        except ValueError:
+            # Context written by older versions could be a python literal
+            content = ast.literal_eval(text)
+        file_content.update(content)
     return file_content
 
 
 def get_load_workfile_metadata(metadata_key):
     """Get to load the workfile json metadata(such as
     creator's context data and container data) which stores in
-    zbrush_metadata/{workfile}/{metadata_key} folder in the project
+    .zbrush_metadata/{workfile}/{metadata_key} folder in the project
     work directory.
     It mainly supports to the metadata_key below:
     ZBRUSH_METADATA_CREATE_CONTEXT: loading create_context.json where
         stores the data with publish_attributes(e.g. whether the
         optional validator is enabled.)
-    ZBRUSH_SECTION_NAME_CONTAINERS: loading {subset_name}.json where
-        includes all the loaded asset data to the zbrush scene.
+    ZBRUSH_SECTION_NAME_CONTAINERS: loading {name}.json where
+        includes all the loaded container data of the zbrush scene.
 
     Args:
         metadata_key (str): name of the metadata key
@@ -388,10 +439,7 @@ def get_load_workfile_metadata(metadata_key):
         list: list of metadata(create-context data or container data)
     """
     file_content = []
-    current_file = registered_host().get_current_workfile()
-    if current_file:
-        current_file = os.path.splitext(
-            os.path.basename(current_file))[0].strip()
+    current_file = get_current_workfile_name()
     work_dir = get_workdir()
     json_dir = os.path.join(
         work_dir, ".zbrush_metadata",
@@ -423,10 +471,7 @@ def get_instance_workfile_metadata():
         dict: instance data
     """
     file_content = []
-    current_file = registered_host().get_current_workfile()
-    if current_file:
-        current_file = os.path.splitext(
-            os.path.basename(current_file))[0].strip()
+    current_file = get_current_workfile_name()
     work_dir = get_workdir()
     json_dir = os.path.join(
         work_dir, ".zbrush_metadata",
@@ -443,22 +488,23 @@ def get_instance_workfile_metadata():
 
 
 def remove_container_data(name):
-    """Function to remove the specific container data from
-    {subset_name}.json in .zbrush_metadata/{workfile}/containers folder
+    """Remove the data of a specific container.
+
+    The container data is stored in `{name}.json` in the
+    `.zbrush_metadata/{workfile}/containers` folder.
 
     Args:
-        name (str): object name stored in the container
+        name (str): name stored in the container
     """
-    current_file = registered_host().get_current_workfile()
-    if current_file:
-        current_file = os.path.splitext(
-            os.path.basename(current_file))[0].strip()
+    current_file = get_current_workfile_name()
     work_dir = get_workdir()
     json_dir = os.path.join(
         work_dir, ".zbrush_metadata",
         current_file, ZBRUSH_SECTION_NAME_CONTAINERS).replace(
             "\\", "/"
         )
+    if not os.path.exists(json_dir):
+        return
     all_fname_list = os.listdir(json_dir)
     json_file = next((jfile for jfile in all_fname_list
                                if jfile == f"{name}.json"), None)
@@ -498,10 +544,7 @@ def copy_ayon_data(filepath):
         filepath (str): the workfile path to be saved
     """
     filename = os.path.splitext(os.path.basename(filepath))[0].strip()
-    current_file = registered_host().get_current_workfile()
-    if current_file:
-        current_file = os.path.splitext(
-            os.path.basename(current_file))[0].strip()
+    current_file = get_current_workfile_name()
     work_dir = get_workdir()
     for name in [ZBRUSH_METADATA_CREATE_CONTEXT,
                  ZBRUSH_SECTION_NAME_INSTANCES,
@@ -527,44 +570,44 @@ def copy_ayon_data(filepath):
 
 
 def imprint(container, container_data):
-    """Function to update the container data from
-    the related json file in .zbrushmetadata/{workfile}/container
-    when updating or switching asset(s)
+    """Update the container data of a specific container.
+
+    The data is loaded from the related json file in
+    `.zbrush_metadata/{workfile}/containers`, e.g. when a container is
+    updated or switched to another representation.
 
     Args:
-        container (str): container
-        container_data (dict): a dictionary containing
-        representation_id and project_name
+        container (dict): container data
+        container_data (dict): update of the container, e.g. the
+            representation id and project name
     """
-    old_container_data = []
-    data = {}
-    name = container["objectName"]
-    current_file = registered_host().get_current_workfile()
-    if current_file:
-        current_file = os.path.splitext(
-            os.path.basename(current_file))[0].strip()
+    name = get_container_name(container)
+    current_file = get_current_workfile_name()
     work_dir = get_workdir()
     json_dir = os.path.join(
         work_dir, ".zbrush_metadata",
         current_file, ZBRUSH_SECTION_NAME_CONTAINERS).replace(
             "\\", "/"
         )
-    js_fname = next((jfile for jfile in os.listdir(json_dir)
-                     if jfile.endswith(f"{name}.json")), None)
-    if js_fname:
-        with open(f"{json_dir}/{js_fname}", "r") as file:
-            old_container_data = json.load(file)
-            print(f"data: {type(old_container_data)}")
-            file.close()
+    if not name or not os.path.exists(json_dir):
+        return
 
-        open(f"{json_dir}/{js_fname}", 'w').close()
-        for item in old_container_data:
-            data = item.copy()
-            data.update(container_data)
-        with open(f"{json_dir}/{js_fname}", "w") as file:
-            new_container_data = json.dumps([data])
-            file.write(new_container_data)
-            file.close()
+    js_fname = next((jfile for jfile in os.listdir(json_dir)
+                     if jfile == f"{name}.json"), None)
+    if not js_fname:
+        return
+
+    json_file = f"{json_dir}/{js_fname}"
+    with open(json_file, "r") as file:
+        containers = json.load(file)
+
+    prepared = []
+    for item in containers:
+        item.update(container_data)
+        prepared.append(prepare_container_data(item))
+
+    with open(json_file, "w") as file:
+        file.write(json.dumps(prepared))
 
 
 def tmp_current_file_check():

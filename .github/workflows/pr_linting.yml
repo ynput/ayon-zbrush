@@ -22,3 +22,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: chartboost/ruff-action@v1
+      - name: Legacy naming check
+        # The addon must not refer to the OpenPype/Avalon naming.
+        run: |
+          if grep -rInEi "openpype|avalon|\bpype\b" client/ \
+              --include="*.py" --include="*.md" --include="*.txt"; then
+            echo "::error::Found OpenPype/Avalon naming, see issue #14."
+            exit 1
+          fi
+          echo "No OpenPype/Avalon naming found."

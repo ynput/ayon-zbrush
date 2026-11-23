@@ -163,3 +163,10 @@ Temporary Items
 
 # ignore mkdocs build
 site/
+
+# ZBrush runtime artifacts
+# ZScripts generated for a launch and compiled by ZBrush
+client/ayon_zbrush/api/zscripts/
+*.zsc
+# Error log written by the AYON launcher of the host process
+error_log.txt
