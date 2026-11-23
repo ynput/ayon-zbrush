@@ -208,9 +208,6 @@ def prepare_container_data(container):
     data = dict(container)
     data["schema"] = "ayon:container-3.0"
     data["id"] = AYON_CONTAINER_ID
-    name = container.get("objectName")
-    if name:
-        data["name"] = name
     return data
 
 
@@ -325,12 +322,7 @@ def get_containers():
     Returns:
         list: list of container data
     """
-    containers = get_load_workfile_metadata(ZBRUSH_SECTION_NAME_CONTAINERS)
-    for container in containers:
-        name = container.get("objectName")
-        if name:
-            container["name"] = name
-    return containers
+    return get_load_workfile_metadata(ZBRUSH_SECTION_NAME_CONTAINERS)
 
 
 def write_load_metadata(data):
