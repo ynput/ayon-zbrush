@@ -2,7 +2,6 @@ import os
 from ayon_core.pipeline import load, get_representation_path
 from ayon_zbrush.api.pipeline import (
     containerise,
-    get_container_name,
     remove_container_data,
     imprint
 )
@@ -59,6 +58,6 @@ class MeshLoader(load.LoaderPlugin):
     def remove(self, container):
         # TODO: figure out how to delete imported object
         # remove the bind with the container data
-        name = get_container_name(container)
+        name = container.get("objectName")
         remove_subtool(name)
         return remove_container_data(name)

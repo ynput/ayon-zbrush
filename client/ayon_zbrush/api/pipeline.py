@@ -192,24 +192,6 @@ def get_current_workfile_name():
         os.path.basename(current_file))[0].strip()
 
 
-def get_container_name(container):
-    """Name of a container.
-
-    The name can be stored as a list of names, and containers written by
-    older versions of the addon might have it under 'objectName'.
-
-    Args:
-        container (dict): Container data.
-
-    Returns:
-        Union[str, None]: Name of the container.
-    """
-    name = container.get("name") or container.get("objectName")
-    if isinstance(name, (list, tuple, set)):
-        name = "|".join(str(item) for item in name)
-    return name
-
-
 def prepare_container_data(container):
     """Prepare a container to be stored in the workfile metadata.
 
@@ -226,12 +208,9 @@ def prepare_container_data(container):
     data = dict(container)
     data["schema"] = "ayon:container-3.0"
     data["id"] = AYON_CONTAINER_ID
-    name = get_container_name(container)
+    name = container.get("objectName")
     if name:
         data["name"] = name
-    # Keys of the previous naming, the name is handled above
-    data.pop("namespace", None)
-    data.pop("objectName", None)
     return data
 
 
@@ -348,7 +327,7 @@ def get_containers():
     """
     containers = get_load_workfile_metadata(ZBRUSH_SECTION_NAME_CONTAINERS)
     for container in containers:
-        name = get_container_name(container)
+        name = container.get("objectName")
         if name:
             container["name"] = name
     return containers
@@ -374,7 +353,7 @@ def write_load_metadata(data):
         )
     os.makedirs(json_dir, exist_ok=True)
     for container in data:
-        name = get_container_name(container)
+        name = container.get("objectName")
         if not name:
             log.warning(
                 "Container without a name cannot be stored: {}".format(
@@ -581,7 +560,7 @@ def imprint(container, container_data):
         container_data (dict): update of the container, e.g. the
             representation id and project name
     """
-    name = get_container_name(container)
+    name = container.get("objectName")
     current_file = get_current_workfile_name()
     work_dir = get_workdir()
     json_dir = os.path.join(
